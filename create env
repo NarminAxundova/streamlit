@@ -1,0 +1,7 @@
+python -m venv venv              
+venv\Scripts\activate   
+pip install -r requirements.txt
+
+
+
+requirements.txt-e lazım olan library siyahısı yazilir. versiya ile yazılsa daha yaxşıdı
