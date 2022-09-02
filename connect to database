@@ -1,0 +1,3 @@
+import psycopg2
+print(sys.path) 
+connection=psycopg2.connect(database='DWH', user='anarmina', host='172.20.10.181', port='5432', password='Temp!@#2022')
