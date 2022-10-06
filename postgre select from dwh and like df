@@ -1,0 +1,40 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from config import config
+import psycopg2
+st.set_page_config(
+    page_title="Reconn App",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+header=st.container()
+with header : 
+    st.title('ghghg')
+    st.text('jeje')
+    
+def connect():
+    params=config()
+    conn=psycopg2.connect(**params)
+    try:
+        params=config()
+        return psycopg2.connect(**params)
+    except(Exception,psycopg2.DatabaseError) as error:
+        conn.rollback()
+        raise error
+    else:
+        conn.commit()
+    finally:
+        conn.close()
+    #return rv
+conn=connect()
+def load_data(query):
+    with conn.cursor() as cur :
+        cur.execute(query)
+        return cur.fetchall()
+rows=load_data("SELECT pointname,id FROM report.terminal_texnik5m limit 100")
+for row in rows:
+    st.write(f"{row[0]} has a : {row[1]}")
+SQl_query=pd.read_sql('select id,pointname,terminaltype from report.terminal_texnik5m limit 100 ', conn)
+df=pd.DataFrame(SQl_query)
+st.write(df)
