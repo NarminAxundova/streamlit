@@ -1,0 +1,109 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from io import BytesIO
+from config import config
+import psycopg2
+st.set_page_config(
+    page_title="Reconn App",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+header=st.container()
+with header : 
+    st.title('ghghg')
+    st.text('jeje')
+add_selectbox = st.sidebar.selectbox(
+    "Which one",
+    ("Mpay", "Modenis")
+)
+
+# Using "with" notation
+
+tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
+st.button("hello") 
+def connect():
+    params=config()
+    conn=psycopg2.connect(**params)
+    try:
+        params=config()
+        return psycopg2.connect(**params)
+    except(Exception,psycopg2.DatabaseError) as error:
+        conn.rollback()
+        raise error
+    else:
+        conn.commit()
+    finally:
+        conn.close()
+    #return rv
+conn=connect()
+def load_data(query):
+    with conn.cursor() as cur :
+        cur.execute(query)
+        return cur.fetchall()
+check=st.checkbox("Data load")
+rows=load_data("select cast(paymentid as varchar) payment_id,serviceid,cast(paydate as timestamp) paydate,paysum,providersum,commissionsum from gate.payment where paydate >'2022-10-05' limit 50")
+for row in rows:
+    print(f"{row[0]} has a : {row[1]}")
+SQl_query=pd.read_sql("select paymentid,serviceid,paydate,paysum,providersum,commissionsum from gate.payment where paydate >'2022-10-05' limit 50", conn)
+df=pd.DataFrame(SQl_query)
+if check:
+    rows=load_data("select cast(paymentid as varchar) payment_id,serviceid,cast(paydate as timestamp) paydate,paysum,providersum,commissionsum from gate.payment where paydate >'2022-10-05' limit 50")
+    for row in rows:
+        st.write(f"{row[0]} has a : {row[1]}")
+    SQl_query=pd.read_sql("select paymentid,serviceid,paydate,paysum,providersum,commissionsum from gate.payment where paydate >'2022-10-05' limit 50", conn)
+    df=pd.DataFrame(SQl_query)
+    st.write(df)
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+csv = convert_df(df)
+
+st.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name='large_df.csv',
+    mime='text/csv',
+)
+
+
+def to_excel(df):
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
+    workbook = writer.book
+    worksheet = writer.sheets['Sheet1']
+    format1 = workbook.add_format({'num_format': '0.00'}) 
+    worksheet.set_column('A:A', None, format1)  
+    writer.save()
+    processed_data = output.getvalue()
+    return processed_data
+df_xlsx = to_excel(df)
+st.download_button(label='📥 Download Current Result',
+                                data=df_xlsx ,
+                                file_name= 'df_test.xlsx')
+with st.sidebar:
+    add_radio = st.radio(
+        "Choose a shipping method",
+        ("Standard (5-15 days)", "Express (2-5 days)")
+    )
+    def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+     return df.to_csv().encode('utf-8')
+    csv = convert_df(df)
+    st.download_button(
+    label="D ownload data as CSV",
+    data=csv,
+    file_name='large_df.csv',
+    mime='text/csv',
+)
+    st.download_button(label='📥 Downl oad Current Result', data=df_xlsx ,file_name= 'df_test.xlsx')
+    cfheck=st.checkbox("Dataj load")
+    if cfheck:
+        rows=load_data("select cast(paymentid as varchar) payment_id,serviceid,cast(paydate as timestamp) paydate,paysum,providersum,commissionsum from gate.payment where paydate >'2022-10-05' limit 50")
+        for row in rows:
+            st.write(f"{row[0]} has a : {row[1]}")
+        SQl_query=pd.read_sql("select paymentid,serviceid,paydate,paysum,providersum,commissionsum from gate.payment where paydate >'2022-10-05' limit 50", conn)
+        df=pd.DataFrame(SQl_query)
+        st.write(df)
